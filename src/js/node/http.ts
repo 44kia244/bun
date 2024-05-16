@@ -768,6 +768,7 @@ async function consumeStream(self, reader: ReadableStreamDefaultReader) {
     if (self[abortedSymbol]) return;
     if (done) {
       self.push(null);
+      self.complete = true;
       break;
     }
     for (var v of value) {
