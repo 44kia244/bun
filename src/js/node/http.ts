@@ -738,6 +738,13 @@ function IncomingMessage(req, defaultIncomingOpts) {
       : false;
 
   this.complete = !!this[noBodySymbol];
+
+  if (!this[noBodySymbol]) {
+    this.on("data", () => {});
+    this.on("end", () => {
+      this.complete = true;
+    });
+  }
 }
 
 Object.setPrototypeOf((IncomingMessage.prototype = {}), Readable.prototype);
@@ -768,7 +775,6 @@ async function consumeStream(self, reader: ReadableStreamDefaultReader) {
     if (self[abortedSymbol]) return;
     if (done) {
       self.push(null);
-      self.complete = true;
       break;
     }
     for (var v of value) {
@@ -780,7 +786,6 @@ async function consumeStream(self, reader: ReadableStreamDefaultReader) {
 IncomingMessage.prototype._read = function (size) {
   if (this[noBodySymbol]) {
     this.push(null);
-    this.complete = true;
   } else if (this[bodyStreamSymbol] == null) {
     const reader = this[reqSymbol].body?.getReader() as ReadableStreamDefaultReader;
     if (!reader) {
